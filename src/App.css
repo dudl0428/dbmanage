@@ -1,0 +1,166 @@
+.container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.full-height {
+  height: 100%;
+}
+
+.flex-container {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.overflow-auto {
+  overflow: auto;
+}
+
+.border {
+  border: 1px solid var(--border-color);
+}
+
+.border-right {
+  border-right: 1px solid var(--border-color);
+}
+
+.border-bottom {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.p-1 {
+  padding: 8px;
+}
+
+.m-1 {
+  margin: 8px;
+}
+
+/* 主体样式 */
+.ant-layout {
+  min-height: 100vh;
+}
+
+/* 头部样式 */
+.app-header {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+.logo {
+  height: 32px;
+  margin-right: 16px;
+}
+
+.app-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* 内容区域样式 */
+.app-content {
+  padding: 24px;
+  background: #f0f2f5;
+}
+
+/* 页脚样式 */
+.app-footer {
+  text-align: center;
+  padding: 10px 50px;
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
+  background: #f0f2f5;
+  border-top: 1px solid #e8e8e8;
+}
+
+/* 全屏加载样式 */
+.app-loading {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+}
+
+.app-loading .ant-spin {
+  margin-bottom: 40px;
+}
+
+.app-loading .ant-spin-text {
+  margin-top: 8px;
+  font-size: 16px;
+  color: #1890ff;
+}
+
+/* 隐藏左下角区域 */
+.bottom-left-button,
+.collapse-button,
+div[class*="collapse"],
+[class*="collapse-btn"],
+[class*="collapse-button"],
+.ant-layout-sider-trigger {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 针对窗口底部角落的特殊元素 */
+body::after,
+body::before {
+  content: none !important;
+  display: none !important;
+}
+
+/* 修复底部区域 */
+#root {
+  height: 100vh;
+  background: #fff;
+}
+
+/* 确保内容区域充满空间并且背景色正确 */
+.main-layout {
+  flex: 1;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+/* 确保整个应用使用浅色背景 */
+body, html, #root, .ant-layout {
+  background-color: #ffffff;
+}
+
+/* 移除Ant Design默认的深色Sider背景 */
+.ant-layout-sider {
+  background-color: #ffffff !important;
+}
+
+/* 移除底部黑色导航栏 */
+.ant-layout-sider-trigger {
+  display: none !important;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: #fff;
+}
+
+/* 移除所有可能的黑色背景 */
+* {
+  background-color: transparent;
+} 

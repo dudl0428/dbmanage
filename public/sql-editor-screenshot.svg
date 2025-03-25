@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600">
+  <!-- 背景 -->
+  <rect x="0" y="0" width="800" height="600" fill="#f5f5f5" />
+  
+  <!-- 顶部标题栏 -->
+  <rect x="0" y="0" width="800" height="40" fill="#1e3a8a" />
+  <text x="20" y="25" font-family="Arial" font-size="16" fill="white">数据库管理工具</text>
+  
+  <!-- 菜单栏 -->
+  <rect x="0" y="40" width="800" height="30" fill="#2e4a9a" />
+  <text x="20" y="60" font-family="Arial" font-size="14" fill="white">文件</text>
+  <text x="80" y="60" font-family="Arial" font-size="14" fill="white">编辑</text>
+  <text x="140" y="60" font-family="Arial" font-size="14" fill="white">视图</text>
+  <text x="200" y="60" font-family="Arial" font-size="14" fill="white">工具</text>
+  <text x="260" y="60" font-family="Arial" font-size="14" fill="white">帮助</text>
+  
+  <!-- 左侧连接树 -->
+  <rect x="0" y="70" width="200" height="530" fill="white" />
+  <rect x="0" y="70" width="200" height="30" fill="#e0e0e0" />
+  <text x="10" y="90" font-family="Arial" font-size="14" fill="#333">连接</text>
+  
+  <!-- 连接项 -->
+  <rect x="10" y="110" width="180" height="25" rx="3" ry="3" fill="#f0f7ff" stroke="#c0d0e0" />
+  <text x="35" y="127" font-family="Arial" font-size="13" fill="#333">MySQL 生产环境</text>
+  <circle cx="25" cy="122" r="8" fill="#4a6af4" />
+  
+  <!-- 连接展开的数据库 -->
+  <text x="35" y="157" font-family="Arial" font-size="13" fill="#333">├─ 用户数据库</text>
+  <text x="55" y="177" font-family="Arial" font-size="13" fill="#333">├─ users</text>
+  <text x="55" y="197" font-family="Arial" font-size="13" fill="#666">└─ orders</text>
+  <text x="35" y="217" font-family="Arial" font-size="13" fill="#333">└─ 系统数据库</text>
+  
+  <!-- 右侧内容区 -->
+  <rect x="200" y="70" width="600" height="530" fill="#fafafa" />
+  
+  <!-- 选项卡 -->
+  <rect x="200" y="70" width="600" height="30" fill="#e0e0e0" />
+  <rect x="200" y="70" width="120" height="30" fill="#e0e0e0" stroke="#ccc" />
+  <text x="225" y="90" font-family="Arial" font-size="13" fill="#333">表数据</text>
+  <rect x="320" y="70" width="120" height="30" fill="#fff" stroke="#ccc" />
+  <text x="345" y="90" font-family="Arial" font-size="13" fill="#333">SQL查询</text>
+  
+  <!-- SQL编辑器工具栏 -->
+  <rect x="200" y="100" width="600" height="30" fill="#f0f0f0" />
+  <rect x="210" y="105" width="80" height="20" rx="3" ry="3" fill="#1e3a8a" />
+  <text x="225" y="119" font-family="Arial" font-size="12" fill="white">执行查询</text>
+  
+  <rect x="300" y="105" width="80" height="20" rx="3" ry="3" fill="#f0f0f0" stroke="#ccc" />
+  <text x="315" y="119" font-family="Arial" font-size="12" fill="#333">格式化</text>
+  
+  <rect x="390" y="105" width="80" height="20" rx="3" ry="3" fill="#f0f0f0" stroke="#ccc" />
+  <text x="405" y="119" font-family="Arial" font-size="12" fill="#333">历史记录</text>
+  
+  <rect x="480" y="105" width="80" height="20" rx="3" ry="3" fill="#f0f0f0" stroke="#ccc" />
+  <text x="495" y="119" font-family="Arial" font-size="12" fill="#333">保存</text>
+  
+  <!-- 选择数据库下拉框 -->
+  <text x="570" y="119" font-family="Arial" font-size="12" fill="#333">数据库:</text>
+  <rect x="630" y="105" width="160" height="20" rx="3" ry="3" fill="white" stroke="#ccc" />
+  <text x="640" y="119" font-family="Arial" font-size="12" fill="#333">用户数据库</text>
+  <text x="775" y="119" font-family="Arial" font-size="12" fill="#333">▼</text>
+  
+  <!-- SQL编辑器区域 -->
+  <rect x="200" y="130" width="600" height="180" fill="#ffffff" stroke="#ccc" />
+  
+  <!-- 代码行号 -->
+  <rect x="200" y="130" width="30" height="180" fill="#f0f0f0" />
+  <text x="215" y="150" font-family="Courier New" font-size="13" fill="#999" text-anchor="middle">1</text>
+  <text x="215" y="170" font-family="Courier New" font-size="13" fill="#999" text-anchor="middle">2</text>
+  <text x="215" y="190" font-family="Courier New" font-size="13" fill="#999" text-anchor="middle">3</text>
+  <text x="215" y="210" font-family="Courier New" font-size="13" fill="#999" text-anchor="middle">4</text>
+  <text x="215" y="230" font-family="Courier New" font-size="13" fill="#999" text-anchor="middle">5</text>
+  <text x="215" y="250" font-family="Courier New" font-size="13" fill="#999" text-anchor="middle">6</text>
+  <text x="215" y="270" font-family="Courier New" font-size="13" fill="#999" text-anchor="middle">7</text>
+  <text x="215" y="290" font-family="Courier New" font-size="13" fill="#999" text-anchor="middle">8</text>
+  
+  <!-- SQL代码 -->
+  <text x="240" y="150" font-family="Courier New" font-size="13" fill="#0033cc" font-weight="bold">SELECT</text>
+  <text x="290" y="150" font-family="Courier New" font-size="13" fill="#333">u.id,</text>
+  <text x="240" y="170" font-family="Courier New" font-size="13" fill="#333">       u.username,</text>
+  <text x="240" y="190" font-family="Courier New" font-size="13" fill="#333">       u.email,</text>
+  <text x="240" y="210" font-family="Courier New" font-size="13" fill="#333">       u.created_at,</text>
+  <text x="240" y="230" font-family="Courier New" font-size="13" fill="#333">       o.order_id,</text>
+  <text x="240" y="250" font-family="Courier New" font-size="13" fill="#333">       o.amount</text>
+  <text x="240" y="270" font-family="Courier New" font-size="13" fill="#0033cc" font-weight="bold">FROM</text>
+  <text x="275" y="270" font-family="Courier New" font-size="13" fill="#009900">users</text>
+  <text x="315" y="270" font-family="Courier New" font-size="13" fill="#333">u</text>
+  <text x="240" y="290" font-family="Courier New" font-size="13" fill="#0033cc" font-weight="bold">JOIN</text>
+  <text x="275" y="290" font-family="Courier New" font-size="13" fill="#009900">orders</text>
+  <text x="315" y="290" font-family="Courier New" font-size="13" fill="#333">o</text>
+  <text x="325" y="290" font-family="Courier New" font-size="13" fill="#0033cc" font-weight="bold">ON</text>
+  <text x="345" y="290" font-family="Courier New" font-size="13" fill="#333">u.id = o.user_id</text>
+  
+  <!-- 结果选项卡 -->
+  <rect x="200" y="310" width="600" height="30" fill="#e0e0e0" />
+  <rect x="200" y="310" width="120" height="30" fill="#fff" stroke="#ccc" />
+  <text x="235" y="330" font-family="Arial" font-size="13" fill="#333">结果</text>
+  <rect x="320" y="310" width="120" height="30" fill="#e0e0e0" stroke="#ccc" />
+  <text x="345" y="330" font-family="Arial" font-size="13" fill="#333">消息</text>
+  <rect x="440" y="310" width="120" height="30" fill="#e0e0e0" stroke="#ccc" />
+  <text x="455" y="330" font-family="Arial" font-size="13" fill="#333">执行计划</text>
+  
+  <!-- 结果表格 -->
+  <rect x="200" y="340" width="600" height="30" fill="#f0f0f0" />
+  <line x1="200" y1="340" x2="800" y2="340" stroke="#ccc" />
+  <line x1="200" y1="370" x2="800" y2="370" stroke="#ccc" />
+  <line x1="200" y1="400" x2="800" y2="400" stroke="#ccc" />
+  <line x1="200" y1="430" x2="800" y2="430" stroke="#ccc" />
+  <line x1="200" y1="460" x2="800" y2="460" stroke="#ccc" />
+  
+  <line x1="240" y1="340" x2="240" y2="460" stroke="#ccc" />
+  <line x1="320" y1="340" x2="320" y2="460" stroke="#ccc" />
+  <line x1="400" y1="340" x2="400" y2="460" stroke="#ccc" />
+  <line x1="500" y1="340" x2="500" y2="460" stroke="#ccc" />
+  <line x1="600" y1="340" x2="600" y2="460" stroke="#ccc" />
+  <line x1="700" y1="340" x2="700" y2="460" stroke="#ccc" />
+  
+  <!-- 结果表头 -->
+  <text x="210" y="360" font-family="Arial" font-size="12" font-weight="bold" fill="#333">ID</text>
+  <text x="250" y="360" font-family="Arial" font-size="12" font-weight="bold" fill="#333">用户名</text>
+  <text x="330" y="360" font-family="Arial" font-size="12" font-weight="bold" fill="#333">邮箱</text>
+  <text x="410" y="360" font-family="Arial" font-size="12" font-weight="bold" fill="#333">创建日期</text>
+  <text x="510" y="360" font-family="Arial" font-size="12" font-weight="bold" fill="#333">订单ID</text>
+  <text x="610" y="360" font-family="Arial" font-size="12" font-weight="bold" fill="#333">金额</text>
+  
+  <!-- 结果数据 -->
+  <text x="210" y="390" font-family="Arial" font-size="12" fill="#333">1</text>
+  <text x="250" y="390" font-family="Arial" font-size="12" fill="#333">admin</text>
+  <text x="330" y="390" font-family="Arial" font-size="12" fill="#333">admin@example.com</text>
+  <text x="410" y="390" font-family="Arial" font-size="12" fill="#333">2023-01-15</text>
+  <text x="510" y="390" font-family="Arial" font-size="12" fill="#333">10001</text>
+  <text x="610" y="390" font-family="Arial" font-size="12" fill="#333">¥299.99</text>
+  
+  <text x="210" y="420" font-family="Arial" font-size="12" fill="#333">1</text>
+  <text x="250" y="420" font-family="Arial" font-size="12" fill="#333">admin</text>
+  <text x="330" y="420" font-family="Arial" font-size="12" fill="#333">admin@example.com</text>
+  <text x="410" y="420" font-family="Arial" font-size="12" fill="#333">2023-01-15</text>
+  <text x="510" y="420" font-family="Arial" font-size="12" fill="#333">10002</text>
+  <text x="610" y="420" font-family="Arial" font-size="12" fill="#333">¥149.50</text>
+  
+  <text x="210" y="450" font-family="Arial" font-size="12" fill="#333">2</text>
+  <text x="250" y="450" font-family="Arial" font-size="12" fill="#333">user1</text>
+  <text x="330" y="450" font-family="Arial" font-size="12" fill="#333">user1@example.com</text>
+  <text x="410" y="450" font-family="Arial" font-size="12" fill="#333">2023-02-20</text>
+  <text x="510" y="450" font-family="Arial" font-size="12" fill="#333">10003</text>
+  <text x="610" y="450" font-family="Arial" font-size="12" fill="#333">¥599.00</text>
+  
+  <!-- 状态栏 -->
+  <rect x="0" y="570" width="800" height="30" fill="#e0e0e0" />
+  <text x="20" y="590" font-family="Arial" font-size="12" fill="#333">已连接 - MySQL 生产环境 | 查询完成 | 返回3条记录 | 查询用时: 45ms</text>
+</svg> 

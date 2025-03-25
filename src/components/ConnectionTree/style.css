@@ -1,0 +1,504 @@
+.connection-tree-container {
+  height: 100%;
+  overflow: auto;
+  padding: 0;
+}
+
+.connection-tree {
+  width: 100%;
+  min-width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e8e8e8;
+  overflow: auto;
+  background-color: #ffffff;
+  padding: 4px 0;
+}
+
+.connection-tree .ant-tree-treenode {
+  padding: 0 !important;
+}
+
+.connection-tree .ant-tree-node-content-wrapper {
+  padding: 2px 5px !important;
+  height: 24px !important;
+  line-height: 24px !important;
+  width: calc(100% - 24px); /* 24px是树节点前面图标和缩进的宽度 */
+  overflow: hidden;
+}
+
+.connection-tree .ant-tree-title {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  width: calc(100% - 10px); /* 减去一些边距，确保内容不会被遮挡 */
+  overflow: hidden;
+}
+
+.connection-tree .ant-tree-switcher {
+  width: 18px;
+  height: 24px;
+  line-height: 24px;
+}
+
+.connection-tree .node-icon {
+  margin-right: 5px;
+  font-size: 15px;
+}
+
+/* 节点类型的图标颜色 */
+.connection-tree .node-icon-connection {
+  color: #1677ff;
+}
+
+.connection-tree .node-icon-database {
+  color: #52c41a;
+}
+
+.connection-tree .node-icon-table-folder {
+  color: #faad14;
+}
+
+.connection-tree .node-icon-view-folder {
+  color: #faad14;
+}
+
+.connection-tree .node-icon-function-folder {
+  color: #faad14;
+}
+
+.connection-tree .node-icon-table {
+  color: #1890ff;
+}
+
+.connection-tree .node-icon-view {
+  color: #722ed1;
+}
+
+.connection-tree .node-icon-function {
+  color: #eb2f96;
+}
+
+/* 树节点右键菜单样式 */
+.tree-node-context-menu {
+  z-index: 1000;
+}
+
+/* 颜色选择器菜单样式 */
+.ant-menu-item div[style*="border-radius: 50%"] {
+  display: inline-block;
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  margin-right: 0;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.ant-menu-submenu-title span[aria-label="star"] {
+  margin-right: 6px;
+}
+
+.ant-menu-item-divider {
+  margin: 4px 0 !important;
+  background-color: #e8e8e8 !important;
+}
+
+.ant-menu-submenu-title {
+  display: flex;
+  align-items: center;
+}
+
+.context-menu .ant-menu {
+  min-width: 200px;
+  border-radius: 4px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.context-menu .ant-menu-item {
+  height: 32px;
+  line-height: 32px;
+  padding: 0 16px;
+  margin: 0;
+}
+
+.context-menu .ant-menu-item .anticon {
+  margin-right: 8px;
+}
+
+.context-menu .ant-menu-item-disabled {
+  color: rgba(0, 0, 0, 0.25);
+}
+
+.context-menu .ant-menu-submenu-title {
+  padding: 0 12px;
+  height: 32px;
+  line-height: 32px;
+}
+
+/* 右键菜单颜色标签样式 */
+.color-tags-menu {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  padding: 4px !important;
+  width: 200px !important;
+}
+
+.color-tags-menu .ant-menu-item {
+  width: auto !important;
+  height: auto !important;
+  padding: 4px !important;
+  margin: 2px !important;
+}
+
+/* 树节点操作按钮 */
+.node-actions {
+  display: none;
+  margin-left: auto;
+}
+
+.ant-tree-node-content-wrapper:hover .node-actions {
+  display: flex;
+}
+
+.node-action-button {
+  padding: 0 3px;
+  margin-left: 2px;
+  color: #999;
+  transition: color 0.3s;
+}
+
+.node-action-button:hover {
+  color: #1890ff;
+}
+
+/* 连接状态样式 */
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
+
+.status-connected {
+  background-color: #52c41a;
+}
+
+.status-disconnected {
+  background-color: #bfbfbf;
+}
+
+.status-connecting {
+  background-color: #faad14;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0% { opacity: 0.2; }
+  50% { opacity: 1; }
+  100% { opacity: 0.2; }
+}
+
+/* 空连接样式 */
+.empty-connections {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+}
+
+.add-connection-button {
+  margin-top: 16px;
+}
+
+/* 树标题样式已移到主布局中使用 */
+
+.tree-node-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  line-height: 24px;
+  padding-right: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 确保图标和文本在一行对齐，并增加一些内边距 */
+.connection-node-content,
+.database-node-content,
+.folder-node-content,
+.table-node-content,
+.default-node-content,
+.view-node-content,
+.function-node-content,
+.event-node-content,
+.tableFolder-node-content,
+.viewFolder-node-content,
+.functionFolder-node-content,
+.eventFolder-node-content {
+  display: flex;
+  align-items: center;
+  padding-left: 4px;
+  padding-right: 4px;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.connection-node-content span,
+.database-node-content span,
+.folder-node-content span,
+.table-node-content span,
+.default-node-content span,
+.view-node-content span,
+.function-node-content span,
+.event-node-content span,
+.tableFolder-node-content span,
+.viewFolder-node-content span,
+.functionFolder-node-content span,
+.eventFolder-node-content span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.node-align-text {
+  margin-left: auto;
+  color: #ff4d4f;
+  font-size: 13px;
+}
+
+.node-action-icon {
+  visibility: hidden;
+  margin-left: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.node-action-icon:hover {
+  color: #1890ff;
+}
+
+.ant-tree-node-content-wrapper:hover .node-action-icon {
+  visibility: visible;
+}
+
+.connection-node {
+  font-weight: 500;
+  color: #222;
+}
+
+.database-node {
+  font-weight: 500;
+  color: #333;
+}
+
+.table-folder-node,
+.view-folder-node,
+.function-folder-node,
+.event-folder-node {
+  font-weight: 500;
+  color: #444;
+}
+
+.tree-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+}
+
+.loading-text {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+/* 覆盖antd树节点样式 */
+.connection-tree .ant-tree {
+  padding: 8px;
+  padding-bottom: 16px;
+  overflow: auto;
+  background-color: #ffffff;
+}
+
+.connection-tree .ant-tree-list {
+  height: 100%;
+}
+
+/* 树节点悬停效果 */
+.connection-tree .ant-tree-node-content-wrapper:hover {
+  background-color: #e8f4ff;
+}
+
+/* 选中节点效果 */
+.connection-tree .ant-tree-node-selected {
+  background-color: #cce8ff !important;
+}
+
+/* 树节点间距 */
+.connection-tree .ant-tree-treenode {
+  padding: 4px 0;
+  width: 100%;
+}
+
+/* 表节点样式 */
+.table-node, 
+.view-node, 
+.function-node, 
+.event-node {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 14px;
+}
+
+/* 数据库连接状态指示器 */
+.connection-tree .connection-node-connected .ant-tree-icon__customize {
+  color: #52c41a;
+}
+
+.connection-tree .connection-node-disconnected .ant-tree-icon__customize {
+  color: #d9d9d9;
+}
+
+/* 右侧内容区 */
+.content-area {
+  flex: 1;
+  padding: 16px;
+  overflow: auto;
+}
+
+/* 数据库连接详情 */
+.database-detail {
+  margin-bottom: 16px;
+}
+
+/* 调整树节点图标垂直居中对齐 */
+.connection-tree .ant-tree-iconEle {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  margin-right: 6px;
+  line-height: 24px;
+  margin-left: 4px;
+}
+
+/* 调整树节点和子节点间距 */
+.connection-tree .ant-tree-indent-unit {
+  width: 20px;
+}
+
+/* 移除底部黑色导航 */
+.connection-tree .collapse-button {
+  display: none !important;
+}
+
+/* 底部显示"这里不需要"的区域完全隐藏 */
+.connection-tree .ant-tree-list-holder-inner {
+  padding-bottom: 0;
+}
+
+.connection-tree .ant-tree {
+  padding-bottom: 0;
+}
+
+/* Navicat风格的树节点 */
+.connection-tree .ant-tree-switcher {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 调整树节点高度 */
+.connection-tree .ant-tree-node-content-wrapper {
+  padding: 3px 3px 3px 0;
+  line-height: 22px;
+  display: flex;
+  align-items: center;
+}
+
+/* 表文件夹节点特殊样式 */
+.table-folder-node {
+  font-weight: 500;
+  color: #333;
+}
+
+.table-folder-node:hover {
+  background-color: #e6f7ff;
+}
+
+/* 激活的树节点样式 */
+.connection-tree .ant-tree-node-selected .table-folder-node-content,
+.connection-tree .ant-tree-node-selected .database-node-content {
+  color: #1890ff;
+  font-weight: bold;
+}
+
+/* 树节点图标样式增强 */
+.connection-tree .ant-tree-node-selected .ant-tree-iconEle .anticon {
+  color: #1890ff;
+}
+
+/* 确保表文件夹和数据库节点在选中时有明显区别 */
+.connection-tree .ant-tree-node-selected {
+  background-color: #e6f7ff !important;
+}
+
+/* 移除底部和侧面的深色背景 */
+body::after,
+body::before {
+  display: none !important;
+}
+
+/* 确保没有底部深色区域 */
+.connection-tree::after {
+  display: none !important;
+}
+
+/* 移除所有可能的折叠按钮 */
+.collapse-button,
+[class*="collapse-btn"],
+.ant-layout-sider-trigger {
+  display: none !important;
+}
+
+/* 在侧边栏折叠时的样式 */
+.ant-layout-sider-collapsed .connection-tree .ant-tree-title,
+.ant-layout-sider-collapsed .connection-tree .ant-tree-switcher,
+.ant-layout-sider-collapsed .connection-tree .tree-node-title span,
+.ant-layout-sider-collapsed .node-actions {
+  display: none;
+}
+
+.ant-layout-sider-collapsed .connection-tree .ant-tree-treenode {
+  text-align: center;
+  padding: 4px 0;
+}
+
+.ant-layout-sider-collapsed .connection-tree .ant-tree-node-content-wrapper {
+  padding: 0 !important;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.ant-layout-sider-collapsed .connection-tree .ant-tree-iconEle {
+  margin: 0 auto;
+  font-size: 18px;
+}
+
+/* 连接树内容适应折叠状态 */
+.ant-layout-sider-collapsed .connection-tree {
+  padding: 8px 0;
+} 
