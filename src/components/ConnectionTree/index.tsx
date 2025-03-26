@@ -41,7 +41,7 @@ export interface ConnectionTreeProps {
   connections: ConnectionResponse[];
   onSelectConnection?: (connection: ConnectionResponse) => void;
   onSelectDatabase?: (database: string, connectionId: string) => void;
-  onSelectTable?: (table: string, database: string, connectionId: string) => void;
+  onSelectTable?: (table: string, database: string, connectionId: string, showStructure?: boolean, type?: string) => void;
   onAddConnection?: () => void;
   currentConnection?: any;
   currentDatabase?: string | null;
@@ -556,7 +556,7 @@ const ConnectionTree: React.FC<ConnectionTreeProps> = ({
       
       // 连接节点加载数据库列表
       if (nodeType === 'connection' && connectionId) {
-        // 检查连接状态 - 确保从服务获取最新状态
+        // 检查连接状态
         const isConnected = ConnectionService.isConnected(connectionId);
         
         if (!isConnected) {
@@ -566,9 +566,8 @@ const ConnectionTree: React.FC<ConnectionTreeProps> = ({
               resolve();
             return;
           }
-        }
-        
-        // 已连接，加载数据库列表
+        } else {
+          // 已连接，但没有加载数据库列表，直接加载
           const databases = await loadDatabases(connectionId);
           
           // 更新树节点
@@ -585,6 +584,7 @@ const ConnectionTree: React.FC<ConnectionTreeProps> = ({
               return item;
             });
           });
+        }
           
           resolve();
         return;
@@ -640,18 +640,51 @@ const ConnectionTree: React.FC<ConnectionTreeProps> = ({
   }, [onSelectDatabase]);
 
   // 优化选择表方法
-  const selectTable = useCallback((tableName: string, dbName: string, connId: number) => {
-    console.log(`内部选择表: ${tableName}, 数据库: ${dbName}, 连接ID: ${connId}`);
+  const selectTable = useCallback((tableName: string, dbName: string, connId: number, showStructure: boolean = false, type: string = 'data') => {
+    console.log(`内部选择表: ${tableName}, 数据库: ${dbName}, 连接ID: ${connId}, 显示结构: ${showStructure}, 类型: ${type}`);
     if (onSelectTable) {
-      onSelectTable(tableName, dbName, connId.toString());
+      onSelectTable(tableName, dbName, connId.toString(), showStructure, type);
     }
   }, [onSelectTable]);
 
   // 添加事件监听
   useEffect(() => {
-    const handleRefresh = () => {
-      console.log('ConnectionTree: 收到刷新事件');
-      loadConnections();
+    // 避免使用全局刷新，改为更细粒度的刷新方式
+    const handleRefresh = (event: any) => {
+      console.log('ConnectionTree: 收到刷新事件', event.detail);
+      
+      // 如果提供了特定的刷新参数，只刷新指定的节点
+      if (event.detail && event.detail.type) {
+        switch (event.detail.type) {
+          case 'connection':
+            if (event.detail.connectionId) {
+              console.log(`只刷新连接 ${event.detail.connectionId}`);
+              // 实现有针对性的刷新逻辑
+              // 这里可以实现只刷新特定连接的逻辑，而不是整个树
+              return;
+            }
+            break;
+          case 'database':
+            if (event.detail.connectionId && event.detail.databaseName) {
+              console.log(`只刷新数据库 ${event.detail.databaseName}`);
+              // 实现有针对性的刷新逻辑
+              return;
+            }
+            break;
+          case 'table':
+            if (event.detail.connectionId && event.detail.databaseName) {
+              console.log(`只刷新表文件夹`);
+              handleRefreshTables(event.detail.connectionId, event.detail.databaseName);
+              return;
+            }
+            break;
+        }
+      }
+      
+      // 如果没有特定参数，执行完整刷新，但添加确认以避免误操作
+      console.log('执行完整刷新');
+      // 避免不必要的完整刷新，除非用户明确需要
+      // loadConnections();
     };
     
     window.addEventListener('refreshConnectionTree', handleRefresh);
@@ -684,9 +717,14 @@ const ConnectionTree: React.FC<ConnectionTreeProps> = ({
     
     switch (nodeType) {
       case 'connection':
+        // 只有在未连接状态下才尝试连接，避免重复连接
         if (!isConnected) {
+          console.log(`连接节点 ${connectionId} 未连接，尝试连接`);
           connectToDatabase(connectionId);
+        } else {
+          console.log(`连接节点 ${connectionId} 已连接，跳过连接操作`);
         }
+        
         if (onSelectConnection) {
           onSelectConnection(connection);
         }
@@ -700,10 +738,7 @@ const ConnectionTree: React.FC<ConnectionTreeProps> = ({
       
       case 'table':
       case 'view':
-        if (databaseName && tableName && onSelectTable) {
-          // 直接调用回调，不刷新树结构
-            onSelectTable(tableName, databaseName, connectionId.toString());
-        }
+        // 只选中表节点，不触发打开表的操作，改为双击或右键菜单打开
         break;
       
       case 'tableFolder':
@@ -825,6 +860,68 @@ const ConnectionTree: React.FC<ConnectionTreeProps> = ({
     }
   ];
 
+  // 修改表节点的右键菜单项
+  const getTableMenuItems = (connectionId: number, databaseName: string, tableName: string) => {
+    // 生成操作ID
+    const openTableKey = `open-table-${connectionId}-${databaseName}-${tableName}`;
+    const openStructureKey = `open-structure-${connectionId}-${databaseName}-${tableName}`;
+    
+    return [
+      {
+        key: 'openTable',
+        label: '打开表',
+        icon: <TableOutlined />,
+        onClick: () => {
+          // 检查锁以防止重复操作
+          if (requestLock.current[openTableKey]) {
+            console.log(`操作 ${openTableKey} 正在处理中，跳过重复请求`);
+            return;
+          }
+          
+          requestLock.current[openTableKey] = true;
+          
+          try {
+            if (onSelectTable) {
+              // 右键菜单打开表，添加参数表示需要显示表结构
+              onSelectTable(tableName, databaseName, connectionId.toString(), true);
+            }
+          } finally {
+            // 延迟删除锁
+            setTimeout(() => {
+              delete requestLock.current[openTableKey];
+            }, 500);
+          }
+        }
+      },
+      {
+        key: 'showStructure',
+        label: '表结构',
+        icon: <SettingOutlined />,
+        onClick: () => {
+          // 检查锁以防止重复操作
+          if (requestLock.current[openStructureKey]) {
+            console.log(`操作 ${openStructureKey} 正在处理中，跳过重复请求`);
+            return;
+          }
+          
+          requestLock.current[openStructureKey] = true;
+          
+          try {
+            if (onSelectTable) {
+              // 专门用于显示表结构的选项
+              onSelectTable(tableName, databaseName, connectionId.toString(), true, 'structure');
+            }
+          } finally {
+            // 延迟删除锁
+            setTimeout(() => {
+              delete requestLock.current[openStructureKey];
+            }, 500);
+          }
+        }
+      }
+    ];
+  };
+
   // 处理右键菜单
   const handleContextMenu = (event: React.MouseEvent, node: TreeNodeInterface) => {
     event.preventDefault();
@@ -840,6 +937,9 @@ const ConnectionTree: React.FC<ConnectionTreeProps> = ({
       
       // 获取表文件夹菜单项
       menuItems = getTableFolderMenuItems(node.connectionId, node.databaseName, dbType);
+    } else if (node.nodeType === 'table' && node.connectionId && node.databaseName && node.tableName) {
+      // 表节点右键菜单
+      menuItems = getTableMenuItems(node.connectionId, node.databaseName, node.tableName);
     }
     // 可以添加其他节点类型的菜单项...
     
@@ -903,6 +1003,32 @@ const ConnectionTree: React.FC<ConnectionTreeProps> = ({
     }
   };
 
+  // 在handleTableDoubleClick函数中添加处理逻辑
+  const handleTableDoubleClick = (node: any) => {
+    if (!node || !node.databaseName || !node.connectionId) return;
+    
+    console.log('双击表格:', node);
+    
+    // 获取表名
+    const tableName = node.tableName || node.title;
+    const database = node.databaseName;
+    const connectionId = node.connectionId.toString();
+    
+    console.log(`加载表数据: 表=${tableName}, 数据库=${database}, 连接ID=${connectionId}`);
+    
+    // 调用回调函数，加载表数据
+    if (onSelectTable && tableName) {
+      onSelectTable(tableName, database, connectionId);
+    }
+    
+    // 展开节点
+    const expandedKeys = [...selectedKeys];
+    if (!expandedKeys.includes(node.key)) {
+      expandedKeys.push(node.key);
+      setExpandedKeys(expandedKeys);
+    }
+  };
+
   // 自定义节点渲染
   const titleRender = (nodeData: TreeNodeInterface): React.ReactNode => {
     const node = nodeData as TreeNodeInterface;
@@ -912,6 +1038,7 @@ const ConnectionTree: React.FC<ConnectionTreeProps> = ({
       <div 
         className="tree-node-title"
         onContextMenu={(e) => handleContextMenu(e, node)}
+        onDoubleClick={() => handleTableDoubleClick(node)}
       >
         <div className={`${nodeType}-node-content`}>
           <span>{typeof title === 'function' ? title(nodeData) : title}</span>
@@ -940,12 +1067,9 @@ const ConnectionTree: React.FC<ConnectionTreeProps> = ({
     );
   };
 
-  // 监听连接变化
+  // 监听连接变化 - 减少不必要的刷新
   useEffect(() => {
-    if (onConnectionChange) {
-      // 重新加载连接列表
-      loadConnections();
-    }
+    // 只在必要时执行连接逻辑，避免频繁刷新整个树
   }, [onConnectionChange]);
 
   if (loading) {

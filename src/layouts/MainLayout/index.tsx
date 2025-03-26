@@ -68,6 +68,8 @@ interface TabItem {
   table?: string;
   content?: React.ReactNode;
   refreshTimestamp?: number;
+  showStructure?: boolean;
+  viewType?: string;
 }
 
 const MainLayout = () => {
@@ -252,8 +254,15 @@ const MainLayout = () => {
   };
 
   // 选择表
-  const onSelectTable = (table: string, db: string, connId: string) => {
-    console.log(`MainLayout: 选择表 ${table}，数据库 ${db}，连接ID ${connId}`);
+  const onSelectTable = (table: string, db: string, connId: string, showStructure: boolean = false, type: string = 'data') => {
+    console.log(`MainLayout: 选择表 ${table}，数据库 ${db}，连接ID ${connId}, 显示结构: ${showStructure}, 类型: ${type}`);
+    
+    // 更新当前选择的表
+    setSelectedTable(table);
+    
+    // 保存当前活动连接到全局管理器
+    ConnectionManager.setActiveConnectionId(connId);
+    ConnectionManager.setActiveDatabase(db);
     
     // 生成表标签页ID
     const tabId = `table-${connId}-${db}-${table}`;
@@ -263,18 +272,44 @@ const MainLayout = () => {
     
     if (existingTabIndex === -1) {
       // 如果不存在，创建新标签页
-      const conn = connections.find(c => c.id === connId) || selectedConnection;
+      const conn = connections.find(c => c.id.toString() === connId) || selectedConnection;
       
       const newTab: TabItem = {
         id: tabId,
-        title: `${db}.${table}`,
+        title: `${table}`,
         connection: conn,
         database: db,
         table: table,
-        type: 'table' as const
+        type: 'table' as const,
+        showStructure: showStructure,
+        viewType: type || 'data',
+        // 添加刷新时间戳，确保组件会重新渲染
+        refreshTimestamp: Date.now()
       };
       
       setTableTabs(prev => [...prev, newTab]);
+      
+      // 保存当前连接信息到本地存储，帮助调试
+      localStorage.setItem('lastOpenedTable', JSON.stringify({
+        connection: conn?.id,
+        database: db,
+        table: table,
+        timestamp: new Date().toISOString()
+      }));
+      
+      console.log(`创建新的表标签页: ${tabId}, 连接=${conn?.id}, 数据库=${db}, 表=${table}`);
+    } else {
+      // 如果已存在，更新其showStructure和viewType属性并强制刷新
+      const updatedTabs = [...tableTabs];
+      updatedTabs[existingTabIndex] = {
+        ...updatedTabs[existingTabIndex],
+        showStructure: showStructure,
+        viewType: type || 'data',
+        // 更新刷新时间戳，强制组件重新渲染
+        refreshTimestamp: Date.now()
+      };
+      setTableTabs(updatedTabs);
+      console.log(`更新现有表标签页: ${tabId}, 显示结构=${showStructure}, 类型=${type}`);
     }
     
     // 激活该标签页
@@ -466,8 +501,111 @@ const MainLayout = () => {
 
   // 渲染内容区域
   const renderContentArea = () => {
+    // 对于表格标签页
+    const tabItem = tableTabs.find(tab => tab.id === activeTabKey);
+    
+    if (tabItem && tabItem.type === 'table') {
+      return (
+        <DatabaseContent
+          connection={tabItem.connection}
+          database={tabItem.database}
+          table={tabItem.table}
+          onSelectTable={onSelectTable}
+          onDataChange={(hasChanges) => setTabHasUnsavedChanges(tabItem.id, hasChanges)}
+          key={`${tabItem.id}-${tabItem.refreshTimestamp || 0}`}
+          showStructure={tabItem.showStructure}
+          viewType={tabItem.viewType}
+        />
+      );
+    }
+    
+    // 对于表设计器标签页
+    if (activeTabKey && activeTabKey.startsWith('table-designer-') && tableDesignerInfo) {
+      return (
+        <TableDesigner
+          connectionId={tableDesignerInfo.connectionId.toString()}
+          databaseName={tableDesignerInfo.databaseName}
+          databaseType={tableDesignerInfo.databaseType}
+          onSave={() => {
+            // 表保存成功后关闭标签并刷新树结构
+            handleCloseTableTab(activeTabKey);
+            // 使用事件总线或其他方式通知树组件刷新
+            window.dispatchEvent(new CustomEvent('refreshConnectionTree'));
+          }}
+          onClose={() => {
+            // 关闭标签页
+            handleCloseTableTab(activeTabKey);
+          }}
+        />
+      );
+    }
+    
     // 仅渲染标签页内容，如果没有标签页，则不显示任何内容
     if (activeTabKey || queryTabs.length > 0 || tableTabs.length > 0) {
+      // 创建tabs的items配置
+      const items = [
+        ...queryTabs.map(tab => ({
+          key: tab.id,
+          label: (
+            <span className="tab-label">
+              <CodeOutlined />
+              <span className="tab-text">
+                {tab.title}
+                {unsavedChanges[tab.id] && <span className="unsaved-indicator">*</span>}
+              </span>
+            </span>
+          ),
+          children: (
+            <QueryEditor
+              sql={tab.content}
+              onChange={(sql) => handleUpdateQueryContent(tab.id, sql)}
+              connection={selectedConnection}
+              database={selectedDatabase}
+            />
+          ),
+          closable: true
+        })),
+        ...tableTabs.map(tab => ({
+          key: tab.id,
+          label: (
+            <span className="tab-label">
+              {tab.type === 'table-designer' ? (
+                <>
+                  <FormOutlined />
+                  <span className="tab-text">
+                    {tab.title}
+                    {unsavedChanges[tab.id] && <span className="unsaved-indicator">*</span>}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <TableOutlined />
+                  <span className="tab-text">
+                    {tab.title}
+                    {unsavedChanges[tab.id] && <span className="unsaved-indicator">*</span>}
+                  </span>
+                </>
+              )}
+            </span>
+          ),
+          children: tab.type === 'table-designer' ? (
+            tab.content
+          ) : (
+            <DatabaseContent
+              key={tab.refreshTimestamp || tab.id}
+              connection={tab.connection}
+              database={tab.database}
+              table={tab.table!}
+              onDataChange={(hasChanges) => setTabHasUnsavedChanges(tab.id, hasChanges)}
+              showStructure={tab.showStructure}
+              viewType={tab.viewType}
+            />
+          ),
+          closable: true
+        }))
+      ];
+      
+      // 使用新的Tabs API
       return (
         <Tabs
           type="editable-card"
@@ -482,71 +620,8 @@ const MainLayout = () => {
           }}
           className="content-tabs"
           hideAdd
-        >
-          {[
-            ...queryTabs.map(tab => (
-              <TabPane
-                key={tab.id}
-                tab={
-                  <span className="tab-label">
-                    <CodeOutlined />
-                    <span className="tab-text">
-                      {tab.title}
-                      {unsavedChanges[tab.id] && <span className="unsaved-indicator">*</span>}
-                    </span>
-                  </span>
-                }
-                closable
-              >
-                <QueryEditor
-                  sql={tab.content}
-                  onChange={(sql) => handleUpdateQueryContent(tab.id, sql)}
-                  connection={selectedConnection}
-                  database={selectedDatabase}
-                />
-              </TabPane>
-            )),
-            ...tableTabs.map(tab => (
-              <TabPane
-                key={tab.id}
-                tab={
-                  <span className="tab-label">
-                    {tab.type === 'table-designer' ? (
-                      <>
-                        <FormOutlined />
-                        <span className="tab-text">
-                          {tab.title}
-                          {unsavedChanges[tab.id] && <span className="unsaved-indicator">*</span>}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <TableOutlined />
-                        <span className="tab-text">
-                          {tab.title}
-                          {unsavedChanges[tab.id] && <span className="unsaved-indicator">*</span>}
-                        </span>
-                      </>
-                    )}
-                  </span>
-                }
-                closable
-              >
-                {tab.type === 'table-designer' ? (
-                  tab.content
-                ) : (
-                  <DatabaseContent
-                    key={tab.refreshTimestamp || tab.id}
-                    connection={tab.connection}
-                    database={tab.database}
-                    table={tab.table!}
-                    onDataChange={(hasChanges) => setTabHasUnsavedChanges(tab.id, hasChanges)}
-                  />
-                )}
-              </TabPane>
-            ))
-          ]}
-        </Tabs>
+          items={items}
+        />
       );
     }
     
@@ -886,10 +961,15 @@ const MainLayout = () => {
           connectionId={info.connectionId.toString()}
           databaseName={info.databaseName}
           databaseType={info.databaseType}
-          onSuccess={() => {
+          onSave={() => {
+            // 表保存成功后关闭标签并刷新树结构
             handleCloseTableTab(tabKey);
             // 使用事件总线或其他方式通知树组件刷新
             window.dispatchEvent(new CustomEvent('refreshConnectionTree'));
+          }}
+          onClose={() => {
+            // 关闭标签页
+            handleCloseTableTab(tabKey);
           }}
         />
       )

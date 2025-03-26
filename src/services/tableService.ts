@@ -1,6 +1,8 @@
 import type { FieldDefinition, IndexDefinition, ForeignKeyDefinition, TriggerDefinition, DataTypeDefinition } from '@/types/table';
 import request from '@/utils/request';
 import { ApiResponse } from '@/types/api';
+import axios from 'axios';
+import { message } from 'antd';
 
 /**
  * 表格服务，处理表格相关的API请求
@@ -191,5 +193,216 @@ export const tableService = {
   }
 };
 
-// 默认导出
-export default tableService; 
+// 定义表数据响应接口
+export interface TableDataResponse {
+  pagination: {
+    total: number;
+    current: number;
+    pageSize: number;
+    totalPages: number;
+  };
+  columns: string[];
+  data: any[];
+}
+
+// 定义表结构接口
+export interface TableStructure {
+  columnName: string;
+  dataType: string;
+  isNullable: string;
+  columnKey: string;
+  columnDefault: any;
+  extra: string;
+  columnComment?: string;
+}
+
+/**
+ * 表数据服务类
+ * 提供表数据相关的API调用方法
+ */
+class TableService {
+  // 获取认证头
+  private getHeaders() {
+    return {
+      'Authorization': 'Bearer ' + localStorage.getItem('token'),
+      'Content-Type': 'application/json'
+    };
+  }
+
+  /**
+   * 获取表结构
+   * @param connectionId 连接ID
+   * @param database 数据库名
+   * @param table 表名
+   * @returns 表结构数据
+   */
+  async getTableStructure(connectionId: number, database: string, table: string): Promise<TableStructure[]> {
+    try {
+      console.log(`获取表结构 - 连接ID: ${connectionId}, 数据库: ${database}, 表: ${table}`);
+      const url = `/table-data/${connectionId}/${database}/${table}/structure`;
+      
+      const response = await request.get(url, {
+        headers: this.getHeaders()
+      });
+      
+      console.log('表结构API响应:', response);
+      
+      if (response.success) {
+        return response.data || [];
+      } else {
+        message.error(response.data.message || '获取表结构失败');
+        return [];
+      }
+    } catch (error: any) {
+      console.error('获取表结构失败:', error);
+      message.error(error.response?.data?.message || '获取表结构失败，请检查网络连接');
+      return [];
+    }
+  }
+
+  /**
+   * 获取表数据
+   * @param connectionId 连接ID
+   * @param database 数据库名
+   * @param table 表名
+   * @param page 页码
+   * @param pageSize 每页记录数
+   * @returns 表数据和分页信息
+   */
+  async getTableData(
+    connectionId: number, 
+    database: string, 
+    table: string, 
+    page: number = 1, 
+    pageSize: number = 100
+  ): Promise<TableDataResponse> {
+    try {
+      console.log(`获取表数据 - 连接ID: ${connectionId}, 数据库: ${database}, 表: ${table}, 页码: ${page}, 每页: ${pageSize}`);
+      const url = `/table-data/${connectionId}/${database}/${table}/data?page=${page}&pageSize=${pageSize}`;
+      
+      const response = await request.get(url, {
+        headers: this.getHeaders()
+      });
+      
+      console.log('表数据API响应:', response);
+      
+      if (response.success) {
+        return response.data || { pagination: { total: 0, current: 1, pageSize, totalPages: 0 }, columns: [], data: [] };
+      } else {
+        message.error(response.message || '获取表数据失败');
+        return { pagination: { total: 0, current: 1, pageSize, totalPages: 0 }, columns: [], data: [] };
+      }
+    } catch (error: any) {
+      console.error('获取表数据失败:', error);
+      message.error(error.response?.data?.message || '获取表数据失败，请检查网络连接');
+      return { pagination: { total: 0, current: 1, pageSize, totalPages: 0 }, columns: [], data: [] };
+    }
+  }
+
+  /**
+   * 更新表数据
+   * @param connectionId 连接ID
+   * @param database 数据库名
+   * @param table 表名
+   * @param data 要更新的数据
+   * @param condition 更新条件
+   * @returns 更新结果
+   */
+  async updateTableData(
+    connectionId: number, 
+    database: string, 
+    table: string, 
+    data: Record<string, any>, 
+    condition: Record<string, any>
+  ): Promise<any> {
+    try {
+      console.log(`更新表数据 - 连接ID: ${connectionId}, 数据库: ${database}, 表: ${table}`);
+      const url = `/table-data/${connectionId}/${database}/${table}/update`;
+      
+      const response = await request.post(url, {
+        data,
+        condition
+      }, {
+        headers: this.getHeaders()
+      });
+      
+      if (response.data.success) {
+        message.success('数据更新成功');
+        return response.data.data;
+      } else {
+        message.error(response.data.message || '数据更新失败');
+        throw new Error(response.data.message);
+      }
+    } catch (error: any) {
+      console.error('更新表数据失败:', error);
+      message.error(error.response?.data?.message || '更新数据失败，请检查网络连接');
+      throw error;
+    }
+  }
+
+  /**
+   * 插入表数据
+   * @param connectionId 连接ID
+   * @param database 数据库名
+   * @param table 表名
+   * @param data 要插入的数据
+   * @returns 插入结果
+   */
+  async insertTableData(
+    connectionId: number, 
+    database: string, 
+    table: string, 
+    data: Record<string, any>
+  ): Promise<any> {
+    try {
+      console.log(`插入表数据 - 连接ID: ${connectionId}, 数据库: ${database}, 表: ${table}`);
+      const url = `/table-data/${connectionId}/${database}/${table}/insert`;
+      
+      const response = await request.post(url, data, {
+        headers: this.getHeaders()
+      });
+      
+      if (response.data.success) {
+        message.success('数据添加成功');
+        return response.data.data;
+      } else {
+        message.error(response.data.message || '数据添加失败');
+        throw new Error(response.data.message);
+      }
+    } catch (error: any) {
+      console.error('插入表数据失败:', error);
+      message.error(error.response?.data?.message || '添加数据失败，请检查网络连接');
+      throw error;
+    }
+  }
+
+  /**
+   * 删除表数据
+   * @param connectionId 连接ID
+   * @param database 数据库名
+   * @param table 表名
+   * @param condition 删除条件
+   * @returns 删除结果
+   */
+  static async deleteTableData(connectionId: number, database: string, table: string, condition: Record<string, any>) {
+    try {
+      const url = `/table-data/${connectionId}/${database}/${table}/delete`;
+      const response = await request.post(url, { condition }, {
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('token'),
+          'Content-Type': 'application/json'
+        }
+      });
+      if (response.data.success) {
+        message.success('删除数据成功');
+      }
+      return response.data;
+    } catch (error: any) {
+      console.error('删除表数据失败:', error);
+      message.error(`删除数据失败: ${error.response?.data?.message || error.message || '未知错误'}`);
+      throw error;
+    }
+  }
+}
+
+export default new TableService(); 

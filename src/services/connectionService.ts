@@ -1,6 +1,10 @@
 import axios from 'axios';
 import { message } from 'antd';
 import { getApi } from '../utils/api';
+import { ApiResponse } from '@/types/api';
+
+// 添加API基础URL - 修复为后端实际地址
+const baseURL = 'http://localhost:8080';
 
 // 定义接口
 export interface ConnectionRequest {
@@ -61,11 +65,16 @@ const connectedIds = new Set<number>();
 const getConnections = async (): Promise<ConnectionResponse[]> => {
   try {
     const api = getApi();
-    const result = await api.get('/connections');
+    const result = await api.get('/connections', {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     return result.data.data || [];
-  } catch (error) {
+  } catch (error: any) {
     console.error('获取连接列表失败:', error);
-    message.error('获取连接列表失败');
+    message.error(`获取连接列表失败: ${error.message}`);
     return [];
   }
 };
@@ -74,7 +83,12 @@ const getConnections = async (): Promise<ConnectionResponse[]> => {
 const createConnection = async (connection: Omit<ConnectionResponse, 'id'>): Promise<ConnectionResponse> => {
   try {
     const api = getApi();
-    const result = await api.post('/connections', connection);
+    const result = await api.post('/connections', connection, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     if (result.data.success) {
       message.success('创建连接成功');
       return result.data.data;
@@ -93,7 +107,12 @@ const createConnection = async (connection: Omit<ConnectionResponse, 'id'>): Pro
 const updateConnection = async (id: number, connection: Partial<ConnectionResponse>): Promise<ConnectionResponse> => {
   try {
     const api = getApi();
-    const result = await api.put(`/connections/${id}`, connection);
+    const result = await api.put(`/connections/${id}`, connection, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     if (result.data.success) {
       message.success('更新连接成功');
       return result.data.data;
@@ -112,7 +131,12 @@ const updateConnection = async (id: number, connection: Partial<ConnectionRespon
 const deleteConnection = async (id: number): Promise<boolean> => {
   try {
     const api = getApi();
-    const result = await api.delete(`/connections/${id}`);
+    const result = await api.delete(`/connections/${id}`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     if (result.data.success) {
       message.success('删除连接成功');
       // 如果连接已打开，从集合中移除
@@ -133,7 +157,12 @@ const deleteConnection = async (id: number): Promise<boolean> => {
 const openConnection = async (id: number): Promise<ConnectionResult> => {
   try {
     const api = getApi();
-    const response = await api.post(`/connections/${id}/open`);
+    const response = await api.post(`/connections/${id}/open`, {}, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     
     if (response.data.success) {
       // 如果连接成功，保存连接状态
@@ -174,7 +203,12 @@ const openConnection = async (id: number): Promise<ConnectionResult> => {
 const closeConnection = async (id: number): Promise<boolean> => {
   try {
     const api = getApi();
-    const response = await api.post(`/connections/${id}/close`);
+    const response = await api.post(`/connections/${id}/close`, {}, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     
     // 如果关闭成功，移除连接状态
     if (response.data.success) {
@@ -207,7 +241,12 @@ const setConnectionStatus = (id: number, status: boolean): void => {
 const getDatabases = async (connectionId: number): Promise<string[]> => {
   try {
     const api = getApi();
-    const result = await api.get(`/connections/${connectionId}/databases`);
+    const result = await api.get(`/connections/${connectionId}/databases`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     if (result.data.success) {
       return result.data.data || [];
     } else {
@@ -225,8 +264,12 @@ const getDatabases = async (connectionId: number): Promise<string[]> => {
 const getTables = async (connectionId: number, database: string): Promise<string[]> => {
   try {
     const api = getApi();
-    // 尝试从后端获取表列表
-    const result = await api.get(`/connections/${connectionId}/databases/${database}/tables`);
+    const result = await api.get(`/connections/${connectionId}/databases/${database}/tables`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     if (result.data.success) {
       return result.data.data || [];
     } else {
@@ -290,7 +333,12 @@ const getTables = async (connectionId: number, database: string): Promise<string
 const getViews = async (connectionId: number, database: string): Promise<string[]> => {
   try {
     const api = getApi();
-    const result = await api.get(`/connections/${connectionId}/databases/${database}/views`);
+    const result = await api.get(`/connections/${connectionId}/databases/${database}/views`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     if (result.data.success) {
       return result.data.data || [];
     } else {
@@ -304,91 +352,152 @@ const getViews = async (connectionId: number, database: string): Promise<string[
   }
 };
 
-// 获取表结构
-const getTableSchema = async (connectionId: number, database: string, table: string): Promise<any[]> => {
+// 增强getTableSchema方法，修复API路径
+export async function getTableSchema(connectionId: number, database: string, table: string): Promise<any[]> {
   try {
-    const api = getApi();
-    const result = await api.get(`/connections/${connectionId}/databases/${database}/tables/${table}/schema`);
-    if (result.data.success) {
-      return result.data.data || [];
+    console.log(`发送请求获取表结构 - 连接ID: ${connectionId}, 数据库: ${database}, 表: ${table}`);
+    
+    // 构建请求URL时确保参数被正确编码
+    const encodedDb = encodeURIComponent(database);
+    const encodedTable = encodeURIComponent(table);
+    
+    const url = `${baseURL}/api/connection/${connectionId}/schema/${encodedDb}/${encodedTable}`;
+    console.log(`请求URL: ${url}`);
+    
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log('表结构API响应:', response);
+    
+    if (response.status === 200) {
+      // 检查响应格式并转换数据结构
+      let schema = response.data;
+      
+      // 确保schema是数组
+      if (!Array.isArray(schema)) {
+        if (schema && schema.data && Array.isArray(schema.data)) {
+          schema = schema.data;
+        } else if (schema && schema.columns && Array.isArray(schema.columns)) {
+          schema = schema.columns;
+        } else {
+          schema = [];
+          console.warn('API返回的schema格式不是预期的数组:', schema);
+        }
+      }
+      
+      console.log(`处理后的表结构数据 (${schema.length} 个字段):`, schema);
+      return schema;
     } else {
-      message.error(result.data.message || '获取表结构失败');
-      return [];
+      throw new Error(`获取表结构失败: ${response.statusText}`);
     }
   } catch (error) {
-    console.error('获取表结构失败:', error);
-    message.error('获取表结构失败');
+    console.error('获取表结构出错:', error);
+    // 返回一个默认的表结构，避免前端崩溃
     return [];
   }
+}
+
+// 获取默认表结构
+const getDefaultTableSchema = () => {
+  return [
+    { columnName: 'id', dataType: 'int(11)', isNullable: 'NO', columnKey: 'PRI', columnDefault: null, extra: 'auto_increment' },
+    { columnName: 'name', dataType: 'varchar(255)', isNullable: 'YES', columnKey: '', columnDefault: null, extra: '' },
+    { columnName: 'description', dataType: 'text', isNullable: 'YES', columnKey: '', columnDefault: null, extra: '' },
+    { columnName: 'created_at', dataType: 'datetime', isNullable: 'YES', columnKey: '', columnDefault: 'CURRENT_TIMESTAMP', extra: '' },
+    { columnName: 'updated_at', dataType: 'datetime', isNullable: 'YES', columnKey: '', columnDefault: 'CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP', extra: '' }
+  ];
 };
 
-// 执行SQL查询
-const executeQuery = async (connectionId: number, database: string, sql: string): Promise<any> => {
+// 增强executeQuery方法，修复API路径
+export async function executeQuery(connectionId: number, database: string, sql: string): Promise<any> {
   try {
-    const api = getApi();
-    const result = await api.post(`/connections/${connectionId}/databases/${database}/execute`, { sql });
+    console.log(`执行查询 - 连接ID: ${connectionId}, 数据库: ${database}, SQL: ${sql}`);
     
-    console.log('API返回原始结果:', result.data);
+    const url = `${baseURL}/api/connection/${connectionId}/query`;
+    console.log(`请求URL: ${url}`);
     
-    if (result.data.success) {
-      // 检查结果结构并确保正确返回rows和columns
-      const returnData = {
+    const response = await axios.post(url, {
+      database,
+      sql
+    }, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log('执行查询API响应:', response);
+    
+    if (response.status === 200) {
+      const result = response.data;
+      
+      // 转换返回的结果为标准格式
+      let formattedResult: any = {
         success: true,
-        message: result.data.message,
+        message: '',
+        data: []
       };
       
-      // 处理多层嵌套的情况
-      if (result.data.data) {
-        let dataObject = result.data.data;
+      // 处理各种可能的返回格式
+      if (Array.isArray(result)) {
+        // 直接是数组
+        formattedResult.data = result;
+      } else if (typeof result === 'object') {
+        // 是对象，尝试找数据字段
+        formattedResult.success = result.success !== false;
+        formattedResult.message = result.message || '';
         
-        // 检查是否有嵌套的data字段
-        if (dataObject.data && typeof dataObject.data === 'object') {
-          console.log('检测到嵌套的data字段:', dataObject.data);
-          dataObject = dataObject.data;
+        if (Array.isArray(result.data)) {
+          formattedResult.data = result.data;
+        } else if (Array.isArray(result.rows)) {
+          formattedResult.data = result.rows;
+        } else if (Array.isArray(result.results)) {
+          formattedResult.data = result.results;
+        } else if (result.data && typeof result.data === 'object' && Array.isArray(result.data.rows)) {
+          formattedResult.data = result.data.rows;
         }
-        
-        // 提取关键字段
-        const { 
-          isQueryResult, 
-          columns, 
-          rows, 
-          data, // 有些API可能用data而不是rows
-          affectedRows, 
-          executionTime, 
-          database: db, 
-          table 
-        } = dataObject;
-        
-        // 将嵌套的数据字段提取到顶层
-        return {
-          ...returnData,
-          isQueryResult,
-          columns,
-          rows: rows || data, // 兼容不同的字段名
-          affectedRows,
-          executionTime,
-          database: db || database,
-          table
-        };
-      } else {
-        return returnData;
       }
+      
+      // 确保表格数据的每一行都有唯一key
+      if (formattedResult.data.length > 0) {
+        formattedResult.data = formattedResult.data.map((row: any, idx: number) => {
+          if (!row.key) {
+            return { ...row, key: `row-${idx}` };
+          }
+          return row;
+        });
+      }
+      
+      console.log(`处理后的查询结果 (${formattedResult.data.length} 行):`, 
+                  formattedResult.data.length > 0 ? formattedResult.data[0] : '无数据');
+      
+      return formattedResult;
     } else {
-      message.error(result.data.message || '执行SQL查询失败');
-      throw new Error(result.data.message);
+      throw new Error(`执行查询失败: ${response.statusText}`);
     }
   } catch (error) {
-    console.error('执行SQL查询失败:', error);
-    message.error('执行SQL查询失败');
-    throw error;
+    console.error('执行查询出错:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : '执行查询时出错',
+      data: []
+    };
   }
-};
+}
 
 // 获取函数列表
 const getFunctions = async (connectionId: number, database: string): Promise<string[]> => {
   try {
     const api = getApi();
-    const result = await api.get(`/connections/${connectionId}/databases/${database}/functions`);
+    const result = await api.get(`/connections/${connectionId}/databases/${database}/functions`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     if (result.data.success) {
       return result.data.data || [];
     } else {
@@ -406,7 +515,12 @@ const getFunctions = async (connectionId: number, database: string): Promise<str
 const getEvents = async (connectionId: number, database: string): Promise<string[]> => {
   try {
     const api = getApi();
-    const result = await api.get(`/connections/${connectionId}/databases/${database}/events`);
+    const result = await api.get(`/connections/${connectionId}/databases/${database}/events`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     if (result.data.success) {
       return result.data.data || [];
     } else {
@@ -428,7 +542,12 @@ const getCompleteSchema = async (connectionId: number, limit?: number): Promise<
     if (limit) {
       url += `&limit=${limit}`;
     }
-    const result = await api.get(url);
+    const result = await api.get(url, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     if (result.data.success) {
       return result.data.data || {};
     } else {
@@ -450,7 +569,12 @@ const getDatabaseSchema = async (connectionId?: number): Promise<any[]> => {
     if (connectionId) {
       url += `?connectionId=${connectionId}`;
     }
-    const result = await api.get(url);
+    const result = await api.get(url, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     if (result.data.success) {
       return result.data.data || [];
     } else {
@@ -468,7 +592,12 @@ const getDatabaseSchema = async (connectionId?: number): Promise<any[]> => {
 const getDatabaseObjects = async (connectionId: number, database: string): Promise<any> => {
   try {
     const api = getApi();
-    const result = await api.get(`/api/database/schema/${connectionId}/${database}`);
+    const result = await api.get(`/api/database/schema/${connectionId}/${database}`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     if (result.data.success) {
       return result.data.data || {};
     } else {
@@ -486,7 +615,12 @@ const getDatabaseObjects = async (connectionId: number, database: string): Promi
 const getTableDetails = async (connectionId: number, database: string, table: string): Promise<any[]> => {
   try {
     const api = getApi();
-    const result = await api.get(`/api/database/schema/${connectionId}/${database}/${table}`);
+    const result = await api.get(`/api/database/schema/${connectionId}/${database}/${table}`, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     if (result.data.success) {
       return result.data.data || [];
     } else {
@@ -512,6 +646,11 @@ const testConnection = async (connection: ConnectionTestRequest): Promise<Connec
       username: connection.username,
       password: connection.password,
       parameters: connection.parameters
+    }, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
     });
 
     if (response.data.success) {
@@ -532,7 +671,12 @@ const testConnection = async (connection: ConnectionTestRequest): Promise<Connec
 const insertTableData = async (connectionId: number, database: string, table: string, data: any): Promise<any> => {
   try {
     const api = getApi();
-    const result = await api.post(`/connections/${connectionId}/databases/${database}/tables/${table}/data`, { data });
+    const result = await api.post(`/connections/${connectionId}/databases/${database}/tables/${table}/data`, { data }, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
+    });
     
     if (result.data.success) {
       message.success('数据添加成功');
@@ -555,6 +699,11 @@ const updateTableData = async (connectionId: number, database: string, table: st
     const result = await api.put(`/connections/${connectionId}/databases/${database}/tables/${table}/data`, { 
       data, 
       condition 
+    }, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
     });
     
     if (result.data.success) {
@@ -576,7 +725,11 @@ const deleteTableData = async (connectionId: number, database: string, table: st
   try {
     const api = getApi();
     const result = await api.delete(`/connections/${connectionId}/databases/${database}/tables/${table}/data`, { 
-      data: { condition } 
+      data: { condition },
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
     });
     
     if (result.data.success) {
@@ -611,6 +764,11 @@ const createDatabase = async (
       type: type,
       charset: charset,
       collation: collation
+    }, {
+      headers: {
+        Authorization: 'Bearer ' + localStorage.getItem('token'),
+        'Content-Type': 'application/json'
+      }
     });
 
     if (response.data.success) {
